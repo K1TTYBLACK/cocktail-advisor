@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocktail Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script> </head> <body class="bg-gray-100 flex justify-center items-center h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4">Cocktail Chat</h2>
+        <div id="chat-box" class="h-[400px] overflow-y-auto border p-3 mb-4 bg-gray-50 rounded"></div>
+        <input id="user-input" type="text" class="w-full border p-2 rounded mb-2" placeholder="Запитай про коктейлі...">
+        <button onclick="sendMessage()" class="w-full bg-blue-500 text-white p-2 rounded">Відправити</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById("user-input").value;
+            if (!userInput) return;
+
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += `<div class='text-right mb-2'><strong>Ви:</strong> ${userInput}</div>`;
+            document.getElementById("user-input").value = "";
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/chat/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: userInput })
+                });
+
+                const data = await response.json();
+                const markdownText = data.response;
+                const htmlText = marked.parse(markdownText); // Convert Markdown to HTML
+                chatBox.innerHTML += `<div class='text-left mb-2'><strong>Бот:</strong> ${htmlText}</div>`;
+
+            } catch (error) {
+                chatBox.innerHTML += `<div class='text-left mb-2 text-red-500'><strong>Помилка:</strong> Не вдалося отримати відповідь.</div>`;
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
